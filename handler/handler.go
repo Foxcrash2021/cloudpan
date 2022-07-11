@@ -1,13 +1,18 @@
 package handler
 
 import (
+	"encoding/json"
+	"filestore_server2/util"
 	"fmt"
 	"io/ioutil"
 	"os"
 
 	//"ioutil"
+	"filestore_server2/meta"
+	//"filestore-server2/util"
 	"io"
 	"net/http"
+	"time"
 )
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,18 +38,28 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		newFile, err := os.Create("/tmp/" + head.Filename)
+		fileMeta := meta.FileMeta{
+			FileName: head.Filename,
+			Location: "/tmp" + head.Filename,
+			UploadAt: time.Now().Format("2022-06-29 20:47:23"),
+		}
+
+		newFile, err := os.Create(fileMeta.Location)
 		if err != nil {
 			fmt.Printf("Failed to create file, err:%s\n", err.Error())
 			return
 		}
 		defer newFile.Close()
 
-		_, err = io.Copy(newFile, file)
+		fileMeta.Filesize, err = io.Copy(newFile, file)
 		if err != nil {
 			fmt.Printf("Failed to save data into file, err:%s\n", err.Error())
 			return
 		}
+
+		newFile.Seek(0, 0)
+		fileMeta.FileSha1 = util.FileSha1(newFile)
+		meta.UpdateFileMeta(fileMeta)
 		//上传已经完成
 		http.Redirect(w, r, "/file/upload/suc", http.StatusFound)
 	}
@@ -52,4 +67,17 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 func UploadSucHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Upload finished!")
+}
+
+//获取文件元信息
+func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	filehash := r.Form["filehash"][0]
+	fmeta := meta.GetFileMeta(filehash)
+	data, err := json.Marshal(fmeta)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(data)
 }

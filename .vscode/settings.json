@@ -25,6 +25,6 @@
         "tfiles",
         "tokensalt",
         "uploadid",
-        "userfile"
+        "newfile",
     ]
 }
