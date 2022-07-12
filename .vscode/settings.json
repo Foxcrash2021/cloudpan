@@ -7,6 +7,7 @@
         "encpwd",
         "fileaddr",
         "filehash",
+        "filemeta",
         "fileserver",
         "filesize",
         "filestore",
@@ -17,6 +18,8 @@
         "jsonit",
         "Metas",
         "mydb",
+        "newfile",
+        "octect",
         "redigo",
         "signin",
         "Signup",
@@ -24,7 +27,6 @@
         "tfile",
         "tfiles",
         "tokensalt",
-        "uploadid",
-        "newfile",
+        "uploadid"
     ]
 }
